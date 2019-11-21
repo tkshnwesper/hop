@@ -2,7 +2,7 @@
 marp: true
 ---
 
-# Algebra
+# Algebra with ![cats logo](./assets/cats-logo.png)
 
 ---
 
