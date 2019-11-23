@@ -23,7 +23,6 @@ Type classes are a powerful tool used in functional programming to enable **ad-h
 ```python
 1 + 2 = 3
 3.14 + 0.0015 = 3.1415
-1 + 3.7 = 4.7
 [1, 2, 3] + [4, 5, 6] = [1, 2, 3, 4, 5, 6]
 [true, false] + [false, true] = [true, false, false, true]
 "bab" + "oon" = "baboon"
