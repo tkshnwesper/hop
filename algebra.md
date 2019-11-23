@@ -8,7 +8,6 @@ marp: true
 }
 </style>
 
-
 # Algebra with ![cats logo](./assets/cats-logo.png)
 
 ---
@@ -135,3 +134,115 @@ Previous:
 def combineAll[A](list: List[A], A: Monoid[A]): A =
   list.foldRight(A.empty)(A.combine)
 ```
+
+---
+
+## Semigroup
+
+If type `A` can form a semigroup it has an **associative binary operation**.
+
+Example:
+
+```scala
+x + (y + z) = (x + y) + z
+```
+
+---
+
+### What makes a Semigroup different from a Monoid
+
+- Semigroups don't have an **identity** value
+- It's a weaker algebra compared to Monoids
+
+---
+
+Let's take for instance...
+
+```scala
+class NonEmpty[A](head: A, tail: List[A])
+```
+
+### A `NonEmpty` list datatype
+
+- A `NonEmpty` list is a list that can never be empty
+- It can never be modelled as a Monoid. Why?
+
+---
+
+### The `Semigroup` trait
+
+```scala
+trait Semigroup[A] {
+  def combine(x: A, y: A): A
+}
+```
+
+---
+
+### Here's how an addition semigroup could be defined
+
+```scala
+import cats.Semigroup
+
+implicit val intAdditionSemigroup: Semigroup[Int] = new Semigroup[Int] {
+  def combine(x: Int, y: Int): Int = x + y
+}
+```
+
+---
+
+### It can be used as follows
+
+```scala
+val x = 1
+val y = 2
+val z = 3
+
+Semigroup[Int].combine(x, y)
+// res0: Int = 3
+
+Semigroup[Int].combine(x, Semigroup[Int].combine(y, z))
+// res1: Int = 6
+
+Semigroup[Int].combine(Semigroup[Int].combine(x, y), z)
+// res2: Int = 6
+```
+
+---
+
+### Semigroups support an infix syntax
+
+```scala
+import cats.implicits._
+
+1 |+| 2
+// res3: Int = 3
+```
+
+---
+
+### Another example
+
+```scala
+import cats.implicits._
+
+val map1 = Map("hello" -> 1, "world" -> 1)
+val map2 = Map("hello" -> 2, "cats"  -> 3)
+
+Semigroup[Map[String, Int]].combine(map1, map2)
+// res4: Map[String,Int] = Map(hello -> 3, cats -> 3, world -> 1)
+
+map1 |+| map2
+// res5: scala.collection.immutable.Map[String,Int] = Map(hello -> 3, cats -> 3, world -> 1)
+```
+
+---
+
+### So finally the `combineAll` operation
+
+```scala
+def combineAll[A: Semigroup](as: List[A]): A =
+  as.foldLeft(/* ?? what goes here ?? */)(_ |+| _)
+```
+
+- If `List[A]` is empty, then there's no fallback identity value
