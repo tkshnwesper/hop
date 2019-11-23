@@ -155,6 +155,17 @@ x + (y + z) = (x + y) + z
 
 ---
 
+### The `combineAll` operation
+
+```scala
+def combineAll[A: Semigroup](as: List[A]): A =
+  as.foldLeft(/* ?? what goes here ?? */)(_ |+| _)
+```
+
+- If `List[A]` is empty, then there's no fallback identity value
+
+---
+
 Let's take for instance...
 
 ```scala
@@ -234,14 +245,3 @@ Semigroup[Map[String, Int]].combine(map1, map2)
 map1 |+| map2
 // res5: scala.collection.immutable.Map[String,Int] = Map(hello -> 3, cats -> 3, world -> 1)
 ```
-
----
-
-### So finally the `combineAll` operation
-
-```scala
-def combineAll[A: Semigroup](as: List[A]): A =
-  as.foldLeft(/* ?? what goes here ?? */)(_ |+| _)
-```
-
-- If `List[A]` is empty, then there's no fallback identity value
