@@ -8,13 +8,13 @@ marp: true
 }
 </style>
 
-# Algebra with ![cats logo](./assets/cats-logo.png)
+# Higher order polymorphism with ![cats logo](./assets/cats-logo.png)
 
 ---
 
 ## Typeclasses
 
-Type classes are a powerful tool used in functional programming to enable **ad-hoc polymorphism**, more commonly known as overloading.
+Type classes are a powerful tool used in functional programming to enable **ad-hoc polymorphism**, more commonly known as **overloading**.
 
 ---
 
@@ -245,3 +245,192 @@ Semigroup[Map[String, Int]].combine(map1, map2)
 map1 |+| map2
 // res5: scala.collection.immutable.Map[String,Int] = Map(hello -> 3, cats -> 3, world -> 1)
 ```
+
+---
+
+## Applicative and Traversable Functors
+
+```scala
+import scala.concurrent.{ExecutionContext, Future}
+
+def traverseFuture[A, B](as: List[A])(f: A => Future[B])(implicit ec: ExecutionContext): Future[List[B]] =
+  Future.traverse(as)(f)
+```
+
+- `traverseFuture` takes a list of `A` and applies the funtion `f` to it
+- `f` is called an **effectful** function.
+
+---
+
+## Functor
+
+- A *type class* that abstracts over *type constructors* that can be `map`'d over.
+- Example: `List`, `Option` and `Future`
+
+```scala
+trait Functor[F[_]] {
+  def map[A, B](fa: F[A])(f: A => B): F[B]
+}
+```
+
+---
+
+### Type constructors
+
+- `Option` by itself is not a *concrete type*
+- Only when it takes a **generic type parameter** does it become concrete
+- Example: `Option[String]`
+
+```scala
+val a: Option = None
+// ❌ error: class Option takes type parameters
+
+val a: Option[Int] = Some(1)
+// ✅
+```
+
+---
+
+### Let's see what a Functor for `Option` class looks like
+
+```scala
+implicit val functorForOption: Functor[Option] = new Functor[Option] {
+  def map[A, B](fa: Option[A])(f: A => B): Option[B] = fa match {
+    case None    => None
+    case Some(a) => Some(f(a))
+  }
+}
+```
+
+---
+
+### Laws of Functors
+
+1. Composition ❤
+2. Identity 👨‍🎤
+
+---
+
+#### Composition ❤
+
+```scala
+fa.map(f).map(g) = fa.map(f.andThen(g))
+```
+
+Mapping with `f` and then again with `g` is the same as mapping once with the composition of `f` and `g`.
+
+---
+
+##### Example of composition
+
+```scala
+val a = List(1, 0, 1, 1, 0)
+
+val f: (Int => Boolean) = {
+  case 0 => false
+  case 1 => true
+}
+
+val g: (Boolean => String) = {
+  case true => "Yes"
+  case false => "No"
+}
+
+a map f map g // List(Yes, No, Yes, Yes, No)
+// or
+a.map(f).map(g) // List(Yes, No, Yes, Yes, No)
+// should equal
+a.map(f andThen g) // List(Yes, No, Yes, Yes, No)
+```
+
+---
+
+#### Identity 👨‍🎤
+
+```scala
+fa.map(x => x) = fa
+```
+
+Mapping with the identity function is a no-op.
+
+---
+
+### Functors from a different perspective
+
+```scala
+trait Functor[F[_]] {
+  def map[A, B](fa: F[A])(f: A => B): F[B]
+
+  def lift[A, B](f: A => B): F[A] => F[B] =
+    fa => map(fa)(f)
+}
+```
+
+`F` allows the lifting of a **pure function** `A => B` into the **effectful function** `F[A] => F[B]`.
+
+---
+
+### Functors for effect management
+
+```scala
+trait Functor[F[_]] { /*...*/ }
+```
+
+- The `F` in `Functor` is referred to as **effect** or **computational context**
+- Different contexts abstract away different behaviors
+  - Example: performing `map` on `Option` will apply the function only on `Some` instances
+
+```scala
+val a = Some(1)
+a.map(_ + 1)  // Some(2)
+
+val b: Option[Int] = None
+b.map(_ + 1)  // None
+```
+
+---
+
+### Composing Functors
+
+- To avoid `_.map(_.map(_.map(f)))` while working with `Option[List[A]]` or `List[Either[String, Future[A]]]`
+- Does not wrap the value
+
+```scala
+val listOption = List(Some(1), None, Some(2))
+// listOption: List[Option[Int]] = List(Some(1), None, Some(2))
+
+// Through Functor#compose
+Functor[List].compose[Option].map(listOption)(_ + 1)
+// res1: List[Option[Int]] = List(Some(2), None, Some(3))
+```
+
+---
+
+### Limitations of composing
+
+```scala
+val listOption = List(Some(1), None, Some(2))
+
+def needsFunctor[F[_]: Functor, A](fa: F[A]): F[Unit] =
+  Functor[F].map(fa)(_ => ())
+
+def foo: List[Option[Unit]] = {
+  val listOptionFunctor = Functor[List].compose[Option]
+  type ListOption[A] = List[Option[A]]
+  needsFunctor[ListOption, Int](listOption)(listOptionFunctor)
+}
+```
+
+---
+
+### Nesting Functors
+
+```scala
+val nested: Nested[List, Option, Int] = Nested(listOption)
+// nested: cats.data.Nested[List,Option,Int] = Nested(List(Some(1), None, Some(2)))
+
+nested.map(_ + 1)
+// res2: cats.data.Nested[List,Option,Int] = Nested(List(Some(2), None, Some(3)))
+```
+
+- Involves syntactic overhead of wrapping and unwrapping
