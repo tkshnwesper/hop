@@ -107,6 +107,18 @@ def combineAll[A <: Monoid[A]](list: List[A]): A = ???
 
 ---
 
+### What is the problem with that approach
+
+```scala
+val a = List(1, 2, 3)
+combineAll(a) // ✅
+
+val a = Nil
+combineAll(a) // ❌
+```
+
+---
+
 ### Trick question
 
 ```scala
