@@ -66,6 +66,8 @@ trait Monoid[A] {
 }
 ```
 
+> This is just an example, the actual `Monoid` trait does not look like this
+
 ---
 
 ## Implementation for summing `Int`s
@@ -260,6 +262,24 @@ map1 |+| map2
 
 ---
 
+## Monoid
+
+---
+
+`Monoid` extends the `Semigroup` class
+
+```scala
+trait Semigroup[A] {
+  def combine(x: A, y: A): A
+}
+
+trait Monoid[A] extends Semigroup[A] {
+  def empty: A
+}
+```
+
+---
+
 ## Applicative and Traversable Functors
 
 ```scala
@@ -446,3 +466,9 @@ nested.map(_ + 1)
 ```
 
 - Involves syntactic overhead of wrapping and unwrapping
+
+---
+
+## Applicative Functors
+
+---
