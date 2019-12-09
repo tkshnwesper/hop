@@ -1,5 +1,7 @@
 ---
 marp: true
+theme: gaia
+class: lead gaia
 ---
 
 <style>
@@ -8,13 +10,18 @@ marp: true
 }
 </style>
 
-# Higher order polymorphism with ![cats logo](./assets/cats-logo.png)
+# Higher order polymorphism with
+![cats logo](./assets/cats-logo.png)
+
+---
+
+## Scala doesn't have static methods
 
 ---
 
 ## Typeclasses
 
-Type classes are a powerful tool used in functional programming to enable **ad-hoc polymorphism**, more commonly known as **overloading**.
+> Type classes are a powerful tool used in functional programming to enable **ad-hoc polymorphism**, more commonly known as **overloading**.
 
 ---
 
@@ -215,8 +222,6 @@ implicit val intAdditionSemigroup: Semigroup[Int] = new Semigroup[Int] {
 
 ---
 
-### It can be used as follows
-
 ```scala
 val x = 1
 val y = 2
@@ -266,7 +271,7 @@ map1 |+| map2
 
 ---
 
-`Monoid` extends the `Semigroup` class
+### `Monoid` extends the `Semigroup` class
 
 ```scala
 trait Semigroup[A] {
@@ -353,8 +358,6 @@ Mapping with `f` and then again with `g` is the same as mapping once with the co
 
 ---
 
-##### Example of composition
-
 ```scala
 val a = List(1, 0, 1, 1, 0)
 
@@ -368,8 +371,6 @@ val g: (Boolean => String) = {
   case false => "No"
 }
 
-a map f map g // List(Yes, No, Yes, Yes, No)
-// or
 a.map(f).map(g) // List(Yes, No, Yes, Yes, No)
 // should equal
 a.map(f andThen g) // List(Yes, No, Yes, Yes, No)
@@ -410,7 +411,12 @@ trait Functor[F[_]] { /*...*/ }
 
 - The `F` in `Functor` is referred to as **effect** or **computational context**
 - Different contexts abstract away different behaviors
-  - Example: performing `map` on `Option` will apply the function only on `Some` instances
+
+---
+
+### Example
+
+Performing `map` on `Option` will apply the function only on `Some` instances
 
 ```scala
 val a = Some(1)
