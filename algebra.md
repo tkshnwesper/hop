@@ -11,17 +11,70 @@ class: lead gaia
 </style>
 
 # Higher order polymorphism with
+
 ![cats logo](./assets/cats-logo.png)
 
 ---
 
-## Scala doesn't have static methods
+<!-- _class: invert lead -->
+
+## Prelude
+
+Scala does not have static methods
+
+---
+
+### ...however
+
+---
+
+### This comes pretty damn close
+
+```scala
+object HappyGoLucky {
+  def becomeHappy = ???
+}
+
+HappyGoLucky.becomeHappy  // 😁
+```
+
+---
+
+### You could even write something like this
+
+```scala
+trait CatPerson {
+  def petTheKitty = ???
+}
+
+object CatPerson extends CatPerson  // lolwut 🤷‍♀️
+
+CatPerson.petTheKitty // 😼
+```
+
+---
+
+```scala
+sealed trait Food
+case class PaneerButterMasala() extends Food
+
+trait ComfortFood[F] {
+  def eatLikeThereIsNoTomorrow = ???
+}
+
+object ComfortFood {
+  def apply[A](implicit ev: ComfortFood[A]): ComfortFood[A] = ev
+}
+
+implicit val 🧀 = new ComfortFood[PaneerButterMasala] {}
+ComfortFood[PaneerButterMasala].eatLikeThereIsNoTomorrow
+```
 
 ---
 
 ## Typeclasses
 
-> Type classes are a powerful tool used in functional programming to enable **ad-hoc polymorphism**, more commonly known as **overloading**.
+Type classes are a powerful tool used in functional programming to enable **ad-hoc polymorphism**, more commonly known as **overloading**.
 
 ---
 
@@ -169,37 +222,6 @@ x + (y + z) = (x + y) + z
 
 ---
 
-### What makes a Semigroup different from a Monoid
-
-- Semigroups don't have an **identity** value
-- It's a weaker algebra compared to Monoids
-
----
-
-### The `combineAll` operation
-
-```scala
-def combineAll[A: Semigroup](as: List[A]): A =
-  as.foldLeft(/* ?? what goes here ?? */)(_ |+| _)
-```
-
-- If `List[A]` is empty, then there's no fallback identity value
-
----
-
-Let's take for instance...
-
-```scala
-class NonEmpty[A](head: A, tail: List[A])
-```
-
-### A `NonEmpty` list datatype
-
-- A `NonEmpty` list is a list that can never be empty
-- It can never be modelled as a Monoid. Why?
-
----
-
 ### The `Semigroup` trait
 
 ```scala
@@ -285,12 +307,76 @@ trait Monoid[A] extends Semigroup[A] {
 
 ---
 
+### Meaning of identity
+
+`empty` should be an **identity** for the `combine` operation
+
+```scala
+combine(x, empty) = combine(empty, x) = x
+```
+
+---
+
+### What makes a `Semigroup` different from a `Monoid`
+
+- Semigroups don't have an **identity** value
+
+---
+
+### The `combineAll` operation
+
+```scala
+def combineAll[A: Semigroup](as: List[A]): A =
+  as.foldLeft(/* ?? what goes here ?? */)(_ |+| _)
+```
+
+- If `List[A]` is empty, then there's no fallback identity value
+
+---
+
+### A `NonEmptyList` list datatype
+
+```scala
+final case class NonEmptyList[A](head: A, tail: List[A])
+```
+
+- A `NonEmptyList` is a list that can never be empty
+- It can never be modelled as a **Monoid**. Why?
+
+---
+
+### ...but wait, can't you do this
+
+```scala
+NonEmptyList(null, Nil)
+// res2: NonEmptyList[Null] = NonEmptyList(null,List())
+```
+
+#### Here's a quote from the **Scala Book**
+
+> *Functional programming* is like writing a series of *algebraic equations*, and **because you don’t use null values in algebra, you don’t use null values in FP**.
+
+---
+
+### Implementation of our `NonEmptyList`
+
+```scala
+final case class NonEmptyList[A](head: A, tail: List[A]) {
+  def ++(other: NonEmptyList[A]): NonEmptyList[A] =
+    NonEmptyList(head, tail ++ other.toList)
+
+  def toList: List[A] = head :: tail
+}
+```
+
+---
+
 ## Applicative and Traversable Functors
 
 ```scala
 import scala.concurrent.{ExecutionContext, Future}
 
-def traverseFuture[A, B](as: List[A])(f: A => Future[B])(implicit ec: ExecutionContext): Future[List[B]] =
+def traverseFuture[A, B](as: List[A])(f: A => Future[B]): Future[List[B]] =
   Future.traverse(as)(f)
 ```
 
