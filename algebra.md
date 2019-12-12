@@ -31,11 +31,11 @@ Scala does not have static methods
 ### This comes pretty damn close
 
 ```scala
-object HappyGoLucky {
-  def becomeHappy = ???
+object CoolPerson {
+  def putOnSomeSwag = ???
 }
 
-HappyGoLucky.becomeHappy  // 😁
+CoolPerson.putOnSomeSwag  // 😁
 ```
 
 ---
@@ -56,7 +56,7 @@ CatPerson.petTheKitty // 😼
 
 ```scala
 sealed trait Food
-case class PaneerButterMasala() extends Food
+case class Nachos() extends Food
 
 trait ComfortFood[F] {
   def eatLikeThereIsNoTomorrow = ???
@@ -66,9 +66,13 @@ object ComfortFood {
   def apply[A](implicit ev: ComfortFood[A]): ComfortFood[A] = ev
 }
 
-implicit val 🧀 = new ComfortFood[PaneerButterMasala] {}
-ComfortFood[PaneerButterMasala].eatLikeThereIsNoTomorrow
+implicit val 🧀 = new ComfortFood[Nachos] {}
+ComfortFood[Nachos].eatLikeThereIsNoTomorrow
 ```
+
+---
+
+## ...and now to the crux of the matter
 
 ---
 
@@ -78,7 +82,7 @@ Type classes are a powerful tool used in functional programming to enable **ad-h
 
 ---
 
-## What is ad-hoc polymorphism
+### What is ad-hoc polymorphism
 
 ```python
 1 + 2 = 3
@@ -86,6 +90,44 @@ Type classes are a powerful tool used in functional programming to enable **ad-h
 [1, 2, 3] + [4, 5, 6] = [1, 2, 3, 4, 5, 6]
 [true, false] + [false, true] = [true, false, false, true]
 "bab" + "oon" = "baboon"
+```
+
+---
+
+### So how do Typeclasses work
+
+---
+
+### Take for instance this piece of Java code
+
+```java
+class Foo {}
+
+interface Summable<T> {
+  T sum (T arg);
+}
+
+(new Foo()).sum(new Foo())  // ❌
+```
+
+Oopsie daisy! `Foo` forgot to implement the `Summable` interface in order to be able to get summed up with other `Foo`s
+
+---
+
+### Using Typeclasses and implicits in Scala
+
+```scala
+class Foo
+
+trait Summable[T] {
+  def sum(arg0: T): T
+}
+
+implicit def foo2Summable(arg0: Foo): Summable[Foo] = new Summable[Foo] {
+  def sum(arg1: Foo): Foo = ???
+}
+
+(new Foo) sum (new Foo) // ✅
 ```
 
 ---
