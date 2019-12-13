@@ -114,13 +114,27 @@ Oopsie daisy! `Foo` forgot to implement the `Summable` interface in order to be 
 
 ---
 
-### Using Typeclasses and implicits in Scala
+### Scala shows us who is boss
+
+```scala
+class Foo
+
+implicit class SummableFoo(foo: Foo) {
+  def sum(arg1: Foo): Foo = ???
+}
+
+(new Foo) sum (new Foo) // ✅
+```
+
+---
+
+### Something less fancy but more meaningful
 
 ```scala
 class Foo
 
 trait Summable[T] {
-  def sum(arg0: T): T
+  def sum(arg: T): T
 }
 
 implicit def foo2Summable(arg0: Foo): Summable[Foo] = new Summable[Foo] {
