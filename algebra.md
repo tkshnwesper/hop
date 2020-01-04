@@ -94,7 +94,7 @@ Type classes are a powerful tool used in functional programming to enable **ad-h
 
 ---
 
-### So how do Typeclasses work
+### How Typeclasses differ from interfaces
 
 ---
 
@@ -119,7 +119,7 @@ Oopsie daisy! `Foo` forgot to implement the `Summable` interface in order to be 
 ```scala
 class Foo
 
-implicit class SummableFoo(foo: Foo) {
+implicit class FooWithSum(arg0: Foo) {
   def sum(arg1: Foo): Foo = ???
 }
 
@@ -182,7 +182,7 @@ trait Monoid[A] {
 }
 ```
 
-> This is just an example, the actual `Monoid` trait does not look like this
+This is just an example, the actual `Monoid` trait does not look like this
 
 ---
 
@@ -206,7 +206,29 @@ val intAdditionMonoid: Monoid[Int] = new Monoid[Int] {
 
 ---
 
-### ... doing the same for the rest
+### Similarly for strings
+
+```scala
+implicit val stringMonoid: Monoid[String] = new Monoid[String] {
+  def empty: String = ""
+  def combine(x: String, y: String): String = x ++ y
+}
+```
+
+---
+
+### ...and sets
+
+```scala
+implicit def setMonoid[A]: Monoid[Set[A]] = new Monoid[Set[A]] {
+  def empty: Set[A] = Set.empty
+  def combine(x: Set[A], y: Set[A]): Set[A] = x union y
+}
+```
+
+---
+
+### Putting it all together
 
 We can simply write the following
 
@@ -349,7 +371,7 @@ map1 |+| map2
 
 ---
 
-### `Monoid` extends the `Semigroup` class
+### `Monoid` extends the `Semigroup` trait
 
 ```scala
 trait Semigroup[A] {
@@ -373,9 +395,7 @@ combine(x, empty) = combine(empty, x) = x
 
 ---
 
-### What makes a `Semigroup` different from a `Monoid`
-
-- Semigroups don't have an **identity** value
+## What makes a `Semigroup` different from a `Monoid`
 
 ---
 
@@ -430,13 +450,14 @@ final case class NonEmptyList[A](head: A, tail: List[A]) {
 ## Applicative and Traversable Functors
 
 ```scala
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 def traverseFuture[A, B](as: List[A])(f: A => Future[B]): Future[List[B]] =
   Future.traverse(as)(f)
 ```
 
-- `traverseFuture` takes a list of `A` and applies the funtion `f` to it
+- `traverseFuture` takes a list of `A` and applies the function `f` to it
+- `f` takes each element from list `as` and returns a `Future` for each element
 - `f` is called an **effectful** function.
 
 ---
@@ -457,7 +478,7 @@ trait Functor[F[_]] {
 ### Type constructors
 
 - `Option` by itself is not a *concrete type*
-- Only when it takes a **generic type parameter** does it become concrete
+- Only when it takes a **type parameter** does it become concrete
 - Example: `Option[String]`
 
 ```scala
@@ -479,6 +500,20 @@ implicit val functorForOption: Functor[Option] = new Functor[Option] {
     case Some(a) => Some(f(a))
   }
 }
+```
+
+---
+
+### Example
+
+Performing `map` on `Option` will apply the function only on `Some` instances
+
+```scala
+val a = Some(1)
+a.map(_ + 1)  // Some(2)
+
+val b: Option[Int] = None
+b.map(_ + 1)  // None
 ```
 
 ---
@@ -526,7 +561,7 @@ a.map(f andThen g) // List(Yes, No, Yes, Yes, No)
 fa.map(x => x) = fa
 ```
 
-Mapping with the identity function is a no-op.
+Mapping with the identity function is a **no-op**.
 
 ---
 
@@ -556,20 +591,6 @@ trait Functor[F[_]] { /*...*/ }
 
 ---
 
-### Example
-
-Performing `map` on `Option` will apply the function only on `Some` instances
-
-```scala
-val a = Some(1)
-a.map(_ + 1)  // Some(2)
-
-val b: Option[Int] = None
-b.map(_ + 1)  // None
-```
-
----
-
 ### Composing Functors
 
 - To avoid `_.map(_.map(_.map(f)))` while working with `Option[List[A]]` or `List[Either[String, Future[A]]]`
@@ -587,6 +608,8 @@ Functor[List].compose[Option].map(listOption)(_ + 1)
 ---
 
 ### Limitations of composing
+
+<!-- Both data and Functor's implementation need to be passed to `needsFunctor` -->
 
 ```scala
 val listOption = List(Some(1), None, Some(2))
@@ -620,3 +643,4 @@ nested.map(_ + 1)
 ## Applicative Functors
 
 ---
+
