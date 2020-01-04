@@ -447,21 +447,6 @@ final case class NonEmptyList[A](head: A, tail: List[A]) {
 
 ---
 
-## Applicative and Traversable Functors
-
-```scala
-import scala.concurrent.Future
-
-def traverseFuture[A, B](as: List[A])(f: A => Future[B]): Future[List[B]] =
-  Future.traverse(as)(f)
-```
-
-- `traverseFuture` takes a list of `A` and applies the function `f` to it
-- `f` takes each element from list `as` and returns a `Future` for each element
-- `f` is called an **effectful** function.
-
----
-
 ## Functor
 
 - A *type class* that abstracts over *type constructors* that can be `map`'d over.
