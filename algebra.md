@@ -453,9 +453,8 @@ final case class NonEmptyList[A](head: A, tail: List[A]) {
 - Example: `List`, `Option` and `Future`
 
 ```scala
-trait Functor[F[_]] {
-  def map[A, B](fa: F[A])(f: A => B): F[B]
-}
+Some(10).map(_ * 3)
+// res0: Option[Int] = Some(30)
 ```
 
 ---
@@ -473,6 +472,19 @@ val a: Option = None
 val a: Option[Int] = Some(1)
 // ✅
 ```
+
+---
+
+### How Functors are defined
+
+```scala
+trait Functor[F[_]] {
+  def map[A, B](fa: F[A])(f: A => B): F[B]
+}
+```
+
+- `fa` is a value wrapped in a `Functor`
+- `f` is a function that takes `A` and returns `B`
 
 ---
 
