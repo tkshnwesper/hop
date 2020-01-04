@@ -627,5 +627,32 @@ nested.map(_ + 1)
 
 ## Applicative Functors
 
+These are Functors that can operate on multiple inputs
+
+```scala
+val one = Some(1)
+val two = Some(2)
+
+Applicative[Option].map2(one, two)(_ + _)
+// res0: Option[Int] = Some(3)
+```
+
 ---
 
+## How they are defined
+
+```scala
+import cats.Functor
+
+trait Applicative[F[_]] extends Functor[F] {
+  def ap[A, B](ff: F[A => B])(fa: F[A]): F[B]
+
+  def pure[A](a: A): F[A]
+
+  def map[A, B](fa: F[A])(f: A => B): F[B] = ap(pure(f))(fa)
+}
+```
+
+---
+
+## The End
