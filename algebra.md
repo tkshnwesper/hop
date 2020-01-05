@@ -198,7 +198,7 @@ def sumInts(list: List[Int]): Int =
 Creating an instance of `Monoid[Int]`
 
 ```scala
-val intAdditionMonoid: Monoid[Int] = new Monoid[Int] {
+implicit val intAdditionMonoid: Monoid[Int] = new Monoid[Int] {
   def empty: Int = 0
   def combine(x: Int, y: Int): Int = x + y
 }
